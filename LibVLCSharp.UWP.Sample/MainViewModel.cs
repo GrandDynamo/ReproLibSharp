@@ -1,9 +1,17 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Net.Http;
 using System.Diagnostics;
+using System.IO;
+using System.Net.Sockets;
+using System.Windows;
 using System.Windows.Input;
 using LibVLCSharp.Platforms.UWP;
 using LibVLCSharp.Shared;
+using Windows.Devices.AllJoyn;
+using Windows.Storage.Streams;
+using Windows.UI.Xaml;
+using Windows.Web;
 
 namespace LibVLCSharp.UWP.Sample
 {
@@ -77,12 +85,16 @@ namespace LibVLCSharp.UWP.Sample
             }
         }
 
-        private void Initialize(InitializedEventArgs eventArgs)
+        private async void Initialize(InitializedEventArgs eventArgs)
         {
             LibVLC = new LibVLC(eventArgs.SwapChainOptions);
             MediaPlayer = new MediaPlayer(LibVLC);
-            MediaPlayer.Play(new Media(LibVLC,
-                new Uri("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")));
+            Uri uri = new Uri("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
+            using (var wc = new HttpClient())
+            {
+                Stream result = await wc.GetStreamAsync(uri);
+                MediaPlayer.Play(new Media(LibVLC, new StreamMediaInput(result)));
+            }
         }
 
         /// <summary>
